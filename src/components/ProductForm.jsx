@@ -8,6 +8,7 @@ const ProductForm = () => {
   const [description, setDescription] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState("");
+  const [products, setProducts] = useState([]);
 
   const handleGenerate = async () => {
     if (!productName.trim()) {
@@ -22,7 +23,7 @@ const ProductForm = () => {
     try {
       const response = await axios.post(
         "http://localhost:3001/api/generate-description",
-        { productName }
+        { productName },
       );
       setDescription(response.data.description);
     } catch (err) {
@@ -35,8 +36,25 @@ const ProductForm = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!productName.trim() || !description.trim()) return;
-    alert(`Product Submitted!\n\nName: ${productName}\nDescription: ${description}`);
+    const name = productName.trim();
+    const desc = description.trim();
+
+    if (!name || !desc) {
+      setError("Please add both a product name and description.");
+      setTimeout(() => setError(""), 3000);
+      return;
+    }
+
+    const newProduct = {
+      id: Date.now(),
+      name,
+      description: desc,
+    };
+
+    setProducts((prev) => [newProduct, ...prev]);
+    setProductName("");
+    setDescription("");
+    setError("");
   };
 
   return (
@@ -97,6 +115,20 @@ const ProductForm = () => {
           </button>
         </form>
       </div>
+
+      {products.length > 0 && (
+        <div className="product-list">
+          <h2>Created Products</h2>
+          {products.map((product) => (
+            <div key={product.id} className="product-card">
+              <div className="product-card-header">
+                <h3>{product.name}</h3>
+              </div>
+              <p>{product.description}</p>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
